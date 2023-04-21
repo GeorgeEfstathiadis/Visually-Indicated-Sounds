@@ -1,7 +1,8 @@
 import os
 import torch
 import numpy as np
-from decord import VideoReader
+# from decord import VideoReader
+import cv2 as cv
 from torch.utils.data import Dataset
 from scipy.io import wavfile
 
@@ -30,8 +31,30 @@ class VideoAudioDataset(Dataset):
         audio_path = self.audio_files[idx]
 
         # Load video
-        vr = VideoReader(video_path, num_threads=1)
-        video = vr.get_batch(range(len(vr))).asnumpy()
+        vr = cv.VideoCapture(video_path)
+
+        if not vr.isOpened():
+            raise IOError("Couldn't open video file {}".format(video_path))
+
+        n_frames = int(vr.get(cv.CAP_PROP_FRAME_COUNT))
+        height = int(vr.get(cv.CAP_PROP_FRAME_HEIGHT))
+        width = int(vr.get(cv.CAP_PROP_FRAME_WIDTH))
+
+        video = np.empty((n_frames, height, width, 3), np.dtype('uint8'))
+
+        frame_count = 0
+        ret = True
+
+        while (frame_count < n_frames and ret):
+            ret, frame = vr.read()
+            if frame_count is None:
+                print("frame_count is none ??")
+            if frame is None:
+                print("frame is none")
+            video[frame_count] = frame
+            frame_count += 1
+
+        vr.release()
 
         # Load audio
         _, audio = wavfile.read(audio_path) # (n_frames, 2)
