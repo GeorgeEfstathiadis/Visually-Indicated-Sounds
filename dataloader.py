@@ -9,10 +9,11 @@ VIDEO_FRAME_RATE = 29.97002997002997
 AUDIO_SAMPLE_RATE = 96000
 
 class VideoAudioDataset(Dataset):
-    def __init__(self, dataset, device, transform=None):
+    def __init__(self, dataset, device, filepath_prefix = '', transform=None):
         self.dataset = dataset
         self.device = device
         self.transform = transform
+        self.filepath_prefix = filepath_prefix
 
     def __len__(self):
         return len(self.dataset)
@@ -26,9 +27,14 @@ class VideoAudioDataset(Dataset):
             and audio is a numpy array of shape (n_frames, n_channels)
         """
 
-        video_path = self.dataset[idx, 0]
-        audio_path = self.dataset[idx, 1]
+        video_path = self.filepath_prefix + self.dataset[idx, 0]
+        audio_path = self.filepath_prefix + self.dataset[idx, 1]
 
+        if not os.path.exists(video_path):
+            raise FileNotFoundError(video_path)
+        if not os.path.exists(audio_path):
+            raise FileNotFoundError(audio_path) 
+        
         # Load video
         cap = cv2.VideoCapture(video_path)
 
