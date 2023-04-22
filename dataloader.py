@@ -1,7 +1,7 @@
 import os
 import torch
 import numpy as np
-from decord import VideoReader
+import cv2
 from torch.utils.data import Dataset
 from scipy.io import wavfile
 
@@ -9,13 +9,13 @@ VIDEO_FRAME_RATE = 29.97002997002997
 AUDIO_SAMPLE_RATE = 96000
 
 class VideoAudioDataset(Dataset):
-    def __init__(self, video_files, audio_files, transform=None):
-        self.video_files = video_files
-        self.audio_files = audio_files
+    def __init__(self, dataset, device, transform=None):
+        self.dataset = dataset
+        self.device = device
         self.transform = transform
 
     def __len__(self):
-        return len(self.video_files)
+        return len(self.dataset)
 
     def __getitem__(self, idx):
         """
@@ -26,20 +26,41 @@ class VideoAudioDataset(Dataset):
             and audio is a numpy array of shape (n_frames, n_channels)
         """
 
-        video_path = self.video_files[idx]
-        audio_path = self.audio_files[idx]
+        video_path = self.dataset[idx, 0]
+        audio_path = self.dataset[idx, 1]
 
         # Load video
-        vr = VideoReader(video_path, num_threads=1)
-        video = vr.get_batch(range(len(vr))).asnumpy()
+        cap = cv2.VideoCapture(video_path)
+
+        # Read frames and store them in a list
+        frames = []
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
+            frame = torch.from_numpy(frame).permute(2, 0, 1)  # Convert to CHW format
+            frames.append(frame)
+
+        # Release the VideoCapture object
+        cap.release()
+
+        # Stack the list of frames into a single tensor
+        video = torch.stack(frames)
+        video.to(self.device)
+
 
         # Load audio
         _, audio = wavfile.read(audio_path) # (n_frames, 2)
+        audio = torch.from_numpy(audio)
+        audio.to(self.device)
 
         if self.transform:
             video, audio = self.transform(video, audio, seconds=5)
 
-        return video, audio
+        label = self.dataset[idx, 2].astype(np.int64)
+
+        return video, audio, label
 
 
 def get_random_segment(video, audio, seconds):
