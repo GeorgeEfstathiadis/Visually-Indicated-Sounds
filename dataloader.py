@@ -5,8 +5,8 @@ import cv2
 from torch.utils.data import Dataset
 from scipy.io import wavfile
 
-VIDEO_FRAME_RATE = 29.97002997002997
-AUDIO_SAMPLE_RATE = 96000
+from constants import VIDEO_FRAME_RATE, AUDIO_SAMPLE_RATE
+
 
 class VideoAudioDataset(Dataset):
     def __init__(self, dataset, device, filepath_prefix = '', transform=None):
@@ -52,17 +52,20 @@ class VideoAudioDataset(Dataset):
         cap.release()
 
         # Stack the list of frames into a single tensor
-        video = torch.stack(frames)
-        video.to(self.device)
+        video = torch.stack(frames).float() # (n_frames, height, width, n_channels)
+        video = video / 255.0 # Normalize pixel values to [0, 1]
+        video = video.to(self.device)
 
 
         # Load audio
         _, audio = wavfile.read(audio_path) # (n_frames, 2)
-        audio = torch.from_numpy(audio)
-        audio.to(self.device)
+        # average the two channels
+        audio = np.mean(audio, axis=1)
+        audio = torch.from_numpy(audio).float() # (n_frames,)
+        audio = audio.to(self.device)
 
         if self.transform:
-            video, audio = self.transform(video, audio, seconds=5)
+            video, audio = self.transform(video, audio, seconds=2)
 
         label = self.dataset[idx, 2].astype(np.int64)
 
