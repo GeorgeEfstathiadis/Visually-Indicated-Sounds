@@ -12,6 +12,7 @@ CV Project
   * [ ] Model1: images -> ResNet -> GRU (for the video) combined with audio (stereo handle both channels) -> ResNet 
     * concat output (512 + 512) and parse through a linear layer
   * [ ] Model2: apply convolution to the time dimension (frames) of the video by adding initial layer in the pretrained ResNet
+    * [ ] not enough memory to work with c\*h\*w channels, need to convolute spatially first
 * [ ] create new data outside the drumstick dataset to see how it generalizes
 
 ## Useful links:
