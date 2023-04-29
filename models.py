@@ -11,7 +11,7 @@ class VideoAudioMatchingModel(nn.Module):
         super(VideoAudioMatchingModel, self).__init__()
         
         # Video sub-model (ResNet with GRU)
-        self.video_cnn = models.resnet18(pretrained=True)
+        self.video_cnn = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         num_features = self.video_cnn.fc.in_features
         self.video_cnn.fc = nn.Identity()
         self.video_gru = nn.GRU(input_size=num_features, hidden_size=512, num_layers=1, batch_first=True)
@@ -21,7 +21,7 @@ class VideoAudioMatchingModel(nn.Module):
             T.MelSpectrogram(sample_rate=AUDIO_SAMPLE_RATE, n_fft=2048, hop_length=512, n_mels=128),
             T.AmplitudeToDB()
         )
-        self.audio_cnn = models.resnet18(pretrained=True)
+        self.audio_cnn = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         self.audio_cnn.fc = nn.Linear(num_features, 512)
         
         # Combine sub-models
