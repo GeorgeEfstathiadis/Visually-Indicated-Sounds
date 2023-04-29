@@ -33,11 +33,11 @@ class VideoAudioMatchingModel(nn.Module):
         video_features = self.video_cnn(video)
         video_features = video_features.view(batch_size, seq_len, -1)
         _, hidden = self.video_gru(video_features)
-        video_output = hidden[-1]
+        video_output = hidden[-1] # 512
 
         spectrogram = self.audio_preprocess(audio)
         spectrogram_3channel = spectrogram.repeat(1, 3, 1, 1)
-        audio_features = self.audio_cnn(spectrogram_3channel)
+        audio_features = self.audio_cnn(spectrogram_3channel) # 512
 
         combined = torch.cat((video_output, audio_features), dim=1)
         output = torch.sigmoid(self.fc(combined))
