@@ -11,7 +11,12 @@ CV Project
 * [ ] discriminator network to see if video/audio is real or fake
   * [ ] Model1: images -> ResNet -> GRU (for the video) combined with audio (stereo handle both channels) -> ResNet 
     * concat output (512 + 512) and parse through a linear layer
-  * [ ] Model2: apply convolution to the time dimension (frames) of the video by adding initial layer in the pretrained ResNet
+  * [ ] Model2: Siamese fusion network, same as model1 but with same weights (using resnet18)
+    * [x] Model structure
+    * [ ] Model training
+      * [x] Training loop
+      * [ ] TODO: fix get_random that sometimes generates empty audio for non-matching video/audio tracks.
+  * [ ] Bonus Model: apply convolution to the time dimension (frames) of the video by adding initial layer in the pretrained ResNet
     * [ ] not enough memory to work with c\*h\*w channels, need to convolute spatially first
 * [ ] create new data outside the drumstick dataset to see how it generalizes
 
