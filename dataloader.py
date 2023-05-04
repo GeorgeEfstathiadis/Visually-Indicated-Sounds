@@ -9,11 +9,13 @@ from constants import VIDEO_FRAME_RATE, AUDIO_SAMPLE_RATE
 
 
 class VideoAudioDataset(Dataset):
-    def __init__(self, dataset, device, filepath_prefix = '', transform=None):
+    def __init__(self, dataset, device, filepath_prefix = '', transform=None, use_cache=False):
         self.dataset = dataset
         self.device = device
         self.transform = transform
         self.filepath_prefix = filepath_prefix
+        self.use_cache = use_cache
+        self.cache = {}
 
     def __len__(self):
         return len(self.dataset)
@@ -26,6 +28,9 @@ class VideoAudioDataset(Dataset):
             tuple: (video, audio) where video is a numpy array of shape (n_frames, height, width, n_channels)
             and audio is a numpy array of shape (n_frames, n_channels)
         """
+        
+        if self.use_cache and idx in self.cache:
+            return self.cache[idx], self.dataset[idx, 2].astype(np.int64)
 
         video_path = self.filepath_prefix + self.dataset[idx, 0]
         audio_path = self.filepath_prefix + self.dataset[idx, 1]
@@ -67,9 +72,24 @@ class VideoAudioDataset(Dataset):
         if self.transform:
             video, audio = self.transform(video, audio, seconds=2)
 
+        # Add to cache
+        if self.use_cache:
+            self.cache[idx] = (video, audio)
+
         label = self.dataset[idx, 2].astype(np.int64)
 
+        if video.shape[0]==0:
+            raise ValueError("Video [", video_path, "] has 0 frames")
+        if audio.shape[0]==0:
+            raise ValueError("Audio [", audio_path, "] has 0 frames")
+
         return video, audio, label
+
+    def empty_cache(self):
+        assert self.use_cache, "Cannot empty cache if DataLoader was initialized with parameter use_cache = False"
+
+        del self.cache
+        self.cache = {}
 
 
 def get_random_segment(video, audio, seconds):
