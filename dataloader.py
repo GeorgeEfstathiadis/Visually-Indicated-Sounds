@@ -106,7 +106,9 @@ def get_random_segment(video, audio, seconds):
     # n_frames_video = int(seconds * VIDEO_FRAME_RATE)
     # n_frames_audio = int(seconds * AUDIO_SAMPLE_RATE)
 
-    time_length = video.shape[0] / VIDEO_FRAME_RATE
+    time_length = min(video.shape[0] / VIDEO_FRAME_RATE, audio.shape[0] / AUDIO_SAMPLE_RATE)
+    assert time_length >= seconds, "Video and audio must be at least as long as the requested segment length (even for non-matching tracks!)"
+    
     time_start = np.random.uniform(0, time_length - seconds)
     
     video_frame_start = int(time_start * VIDEO_FRAME_RATE)
