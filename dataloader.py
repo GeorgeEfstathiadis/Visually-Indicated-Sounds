@@ -9,10 +9,29 @@ from constants import VIDEO_FRAME_RATE, AUDIO_SAMPLE_RATE
 
 
 class VideoAudioDataset(Dataset):
-    def __init__(self, dataset, device, filepath_prefix = '', transform=None, use_cache=False):
+
+    class Transform:
+        NONE = 0
+        RANDOM_SEGMENT = 1
+
+        def get_random_segment(n_frames_video, n_samples_audio, seconds):
+            time_length = min(n_frames_video / VIDEO_FRAME_RATE, n_samples_audio / AUDIO_SAMPLE_RATE)
+            assert time_length >= seconds, "Video and audio must be at least as long as the requested segment length (even for non-matching tracks!)"
+            
+            time_start = np.random.uniform(0, time_length - seconds)
+            
+            video_frame_start = int(time_start * VIDEO_FRAME_RATE)
+            video_frame_end = video_frame_start + int(seconds * VIDEO_FRAME_RATE)
+            audio_frame_start = int(time_start * AUDIO_SAMPLE_RATE)
+            audio_frame_end = audio_frame_start + int(seconds * AUDIO_SAMPLE_RATE)
+            
+            return (video_frame_start, video_frame_end), (audio_frame_start, audio_frame_end)
+
+    def __init__(self, dataset, device, filepath_prefix = '', transform=Transform.NONE, use_cache = False, **transform_args):
         self.dataset = dataset
         self.device = device
         self.transform = transform
+        self.transform_args = transform_args
         self.filepath_prefix = filepath_prefix
         self.use_cache = use_cache
         self.cache = {}
@@ -39,15 +58,28 @@ class VideoAudioDataset(Dataset):
             raise FileNotFoundError(video_path)
         if not os.path.exists(audio_path):
             raise FileNotFoundError(audio_path) 
-        
+
+        # Load audio first
+        _, audio = wavfile.read(audio_path) # (n_samples, 2)
+
+        # Average the two channels
+        audio = np.mean(audio, axis=1)
+        audio = torch.from_numpy(audio).float() # (n_samples,)
+
         # Load video
+        frames = []
         cap = cv2.VideoCapture(video_path)
 
+        if self.transform == VideoAudioDataset.Transform.RANDOM_SEGMENT:
+            n_frames_video = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            n_samples_audio = audio.shape[0]
+            (video_frame_start, video_frame_end), (audio_frame_start, audio_frame_end) = VideoAudioDataset.Transform.get_random_segment(n_frames_video, n_samples_audio, self.transform_args['random_segment_seconds'] if 'random_segment_seconds' in self.transform_args else 5)
+            cap.set(cv2.CAP_PROP_POS_FRAMES, video_frame_start)
+
         # Read frames and store them in a list
-        frames = []
         while True:
             ret, frame = cap.read()
-            if not ret:
+            if not ret or (self.transform == VideoAudioDataset.Transform.RANDOM_SEGMENT and cap.get(cv2.CAP_PROP_POS_FRAMES) > video_frame_end):
                 break
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
             frame = torch.from_numpy(frame).permute(2, 0, 1)  # Convert to CHW format
@@ -59,29 +91,24 @@ class VideoAudioDataset(Dataset):
         # Stack the list of frames into a single tensor
         video = torch.stack(frames).float() # (n_frames, height, width, n_channels)
         video = video / 255.0 # Normalize pixel values to [0, 1]
-        video = video.to(self.device)
+        
+        if self.transform == VideoAudioDataset.Transform.RANDOM_SEGMENT:
+            audio = audio[audio_frame_start:audio_frame_end]
 
-
-        # Load audio
-        _, audio = wavfile.read(audio_path) # (n_frames, 2)
-        # average the two channels
-        audio = np.mean(audio, axis=1)
-        audio = torch.from_numpy(audio).float() # (n_frames,)
-        audio = audio.to(self.device)
-
-        if self.transform:
-            video, audio = self.transform(video, audio, seconds=2)
+        if video.shape[0]==0:
+            raise ValueError("Video [", video_path, "] - found 0 frames when loaded.")
+        if audio.shape[0]==0:
+            raise ValueError("Audio [", audio_path, "] - found 0 frames when loaded.")
 
         # Add to cache
         if self.use_cache:
             self.cache[idx] = (video, audio)
 
-        label = self.dataset[idx, 2].astype(np.int64)
+        # Device storage
+        video = video.to(self.device)
+        audio = audio.to(self.device)
 
-        if video.shape[0]==0:
-            raise ValueError("Video [", video_path, "] has 0 frames")
-        if audio.shape[0]==0:
-            raise ValueError("Audio [", audio_path, "] has 0 frames")
+        label = self.dataset[idx, 2].astype(np.int64)
 
         return video, audio, label
 
@@ -90,34 +117,3 @@ class VideoAudioDataset(Dataset):
 
         del self.cache
         self.cache = {}
-
-
-def get_random_segment(video, audio, seconds):
-    """Extract a random segment of the same time length from video and audio.
-
-    Args:
-        video (numpy array): of shape (n_frames, height, width, n_channels)
-        audio (numpy array): of shape (n_frames, n_channels)
-    Returns:
-        tuple: (video, audio) where video is a numpy array of shape (n_frames, height, width, n_channels)
-        and audio is a numpy array of shape (n_frames, n_channels)
-    """
-    
-    # n_frames_video = int(seconds * VIDEO_FRAME_RATE)
-    # n_frames_audio = int(seconds * AUDIO_SAMPLE_RATE)
-
-    time_length = min(video.shape[0] / VIDEO_FRAME_RATE, audio.shape[0] / AUDIO_SAMPLE_RATE)
-    assert time_length >= seconds, "Video and audio must be at least as long as the requested segment length (even for non-matching tracks!)"
-    
-    time_start = np.random.uniform(0, time_length - seconds)
-    
-    video_frame_start = int(time_start * VIDEO_FRAME_RATE)
-    video_frame_end = video_frame_start + int(seconds * VIDEO_FRAME_RATE)
-    audio_frame_start = int(time_start * AUDIO_SAMPLE_RATE)
-    audio_frame_end = audio_frame_start + int(seconds * AUDIO_SAMPLE_RATE)
-
-    video = video[video_frame_start:video_frame_end]
-    audio = audio[audio_frame_start:audio_frame_end]
-
-    return video, audio
-
