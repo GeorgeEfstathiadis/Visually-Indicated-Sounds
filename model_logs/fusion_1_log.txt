@@ -1,0 +1,69 @@
+05/09/2023 - 15:49
+model2 Training 1
+name: fusion_1
+notes:  fusion_1 uses backbone as a feature extractor, meanining weights are frozen
+        only the following MLP updates its weights
+Train Acc: 0.8897
+Best val Acc: 0.562500
+Test Acc: 0.40625
+----------------------------------------
+device = 'cuda'
+
+RANDOM_SEGMENT_SECONDS = 5
+
+N_EPOCHS = 5
+TRAIN_DATASET_SUBSAMPLE_SIZE = 780
+VAL_DATASET_SUBSAMPLE_SIZE = 96
+TEST_DATASET_SUBSAMPLE_SIZE = 96
+BATCH_SIZE = 4
+
+Epoch 1/5
+----------
+100%
+195/195 [15:44<00:00, 4.72s/it]
+train Loss: 0.1338 Acc: 0.7179
+100%
+24/24 [01:43<00:00, 4.26s/it]
+val Loss: 0.2093 Acc: 0.4167
+
+Epoch 2/5
+----------
+100%
+195/195 [14:59<00:00, 4.61s/it]
+train Loss: 0.0784 Acc: 0.8731
+100%
+24/24 [01:39<00:00, 4.08s/it]
+val Loss: 0.2097 Acc: 0.4479
+
+Epoch 3/5
+----------
+100%
+195/195 [14:52<00:00, 4.61s/it]
+train Loss: 0.0821 Acc: 0.8667
+100%
+24/24 [01:41<00:00, 4.17s/it]
+val Loss: 0.1891 Acc: 0.5312
+
+Epoch 4/5
+----------
+100%
+195/195 [14:14<00:00, 4.23s/it]
+train Loss: 0.0861 Acc: 0.8436
+100%
+24/24 [01:33<00:00, 3.89s/it]
+val Loss: 0.2426 Acc: 0.5000
+
+Epoch 5/5
+----------
+100%
+195/195 [13:55<00:00, 4.41s/it]
+train Loss: 0.0729 Acc: 0.8897
+100%
+24/24 [01:34<00:00, 3.87s/it]
+val Loss: 0.1875 Acc: 0.5625
+
+Training complete in 81m 58s
+Best val Acc: 0.562500
+________________________________________
+
+
