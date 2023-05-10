@@ -1,0 +1,115 @@
+05/09/2023 - 22:25
+model2 Training 2
+name: fusion_2
+notes:  fusion_2 uses backbone as a transfer baseline, meanining weights are NOT frozen
+        all the weights are updated
+Train Acc: 0.9128
+Best val Acc: 0.604167
+Test Acc: 0.45833
+----------------------------------------
+device = 'cuda'
+
+RANDOM_SEGMENT_SECONDS = 2
+
+N_EPOCHS = 10
+TRAIN_DATASET_SUBSAMPLE_SIZE = 780
+VAL_DATASET_SUBSAMPLE_SIZE = 96
+TEST_DATASET_SUBSAMPLE_SIZE = 96
+BATCH_SIZE = 4
+
+starting_point = fusion_1
+
+Epoch 1/10
+----------
+100%
+195/195 [11:34<00:00, 3.44s/it]
+train Loss: 0.0796 Acc: 0.8872
+100%
+24/24 [00:52<00:00, 2.12s/it]
+val Loss: 0.5479 Acc: 0.4896
+
+Epoch 2/10
+----------
+100%
+195/195 [11:29<00:00, 3.50s/it]
+train Loss: 0.0653 Acc: 0.8987
+100%
+24/24 [00:52<00:00, 2.25s/it]
+val Loss: 0.2961 Acc: 0.4896
+
+Epoch 3/10
+----------
+100%
+195/195 [11:25<00:00, 3.62s/it]
+train Loss: 0.0685 Acc: 0.9051
+100%
+24/24 [00:52<00:00, 2.05s/it]
+val Loss: 0.2604 Acc: 0.5000
+
+Epoch 4/10
+----------
+100%
+195/195 [11:26<00:00, 3.48s/it]
+train Loss: 0.0627 Acc: 0.9090
+100%
+24/24 [00:52<00:00, 2.27s/it]
+val Loss: 0.3765 Acc: 0.4167
+
+Epoch 5/10
+----------
+100%
+195/195 [11:31<00:00, 3.42s/it]
+train Loss: 0.0644 Acc: 0.9090
+100%
+24/24 [00:51<00:00, 2.03s/it]
+val Loss: 0.3986 Acc: 0.6042
+
+Epoch 6/10
+----------
+100%
+195/195 [11:29<00:00, 3.37s/it]
+train Loss: 0.0623 Acc: 0.8987
+100%
+24/24 [00:52<00:00, 2.06s/it]
+val Loss: 0.4766 Acc: 0.5729
+
+Epoch 7/10
+----------
+100%
+195/195 [11:27<00:00, 3.57s/it]
+train Loss: 0.0550 Acc: 0.9128
+100%
+24/24 [00:52<00:00, 2.22s/it]
+val Loss: 0.5591 Acc: 0.4896
+
+Epoch 8/10
+----------
+100%
+195/195 [11:25<00:00, 3.41s/it]
+train Loss: 0.0573 Acc: 0.9026
+100%
+24/24 [00:52<00:00, 2.06s/it]
+val Loss: 0.2568 Acc: 0.4792
+
+Epoch 9/10
+----------
+100%
+195/195 [11:27<00:00, 3.63s/it]
+train Loss: 0.0671 Acc: 0.8923
+100%
+24/24 [00:52<00:00, 2.34s/it]
+val Loss: 0.9199 Acc: 0.5729
+
+Epoch 10/10
+----------
+100%
+195/195 [11:26<00:00, 3.51s/it]
+train Loss: 0.0678 Acc: 0.8897
+100%
+24/24 [00:52<00:00, 2.06s/it]
+val Loss: 0.2264 Acc: 0.4896
+
+Training complete in 123m 28s
+Best val Acc: 0.604167
+________________________________________
+
