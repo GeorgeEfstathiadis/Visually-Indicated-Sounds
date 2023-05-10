@@ -8,6 +8,7 @@ Best val Acc: 0.604167
 Test Acc: 0.45833
 ----------------------------------------
 device = 'cuda'
+lr = 0.001
 
 RANDOM_SEGMENT_SECONDS = 2
 
