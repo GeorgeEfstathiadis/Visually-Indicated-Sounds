@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 import cv2
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Sampler
 from scipy.io import wavfile
 
 from constants import VIDEO_FRAME_RATE, AUDIO_SAMPLE_RATE
@@ -146,3 +146,20 @@ def downsample_frame(frame, factor=2):
     frame = frame[::factor, ::factor, :]
 
     return frame
+
+
+class ResamplingSampler(Sampler):
+    def __init__(self, data_source, batch_size, no_batches=None, replacement=True):
+        self.data_source = data_source
+        self.batch_size = batch_size
+        self.replacement = replacement
+        self.no_batches = no_batches if no_batches is not None else len(data_source) // batch_size
+
+    def __iter__(self):
+        n = len(self.data_source)
+        for _ in range(self.no_batches):
+            batch_indices = np.random.choice(n, self.batch_size, replace=self.replacement)
+            yield batch_indices
+
+    def __len__(self):
+        return self.no_batches
