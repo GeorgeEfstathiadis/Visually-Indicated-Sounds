@@ -2,6 +2,8 @@
 
 CV Project
 
+Current best test accuracy: 0.45833 (fusion_2)
+
 ## What needs to be done:
 
 * [x] create a dataloader for the dataset
