@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 import cv2
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Sampler
 from scipy.io import wavfile
 
 from constants import VIDEO_FRAME_RATE, AUDIO_SAMPLE_RATE
@@ -27,10 +27,15 @@ class VideoAudioDataset(Dataset):
             
             return (video_frame_start, video_frame_end), (audio_frame_start, audio_frame_end)
 
-    def __init__(self, dataset, device, filepath_prefix = '', transform=Transform.NONE, use_cache = False, **transform_args):
+    def __init__(
+        self, dataset, device, filepath_prefix = '',
+        transform=Transform.NONE, downsample_factor=1,
+        use_cache = False, **transform_args
+    ):
         self.dataset = dataset
         self.device = device
         self.transform = transform
+        self.downsample_factor = downsample_factor
         self.transform_args = transform_args
         self.filepath_prefix = filepath_prefix
         self.use_cache = use_cache
@@ -73,7 +78,10 @@ class VideoAudioDataset(Dataset):
         if self.transform == VideoAudioDataset.Transform.RANDOM_SEGMENT:
             n_frames_video = cap.get(cv2.CAP_PROP_FRAME_COUNT)
             n_samples_audio = audio.shape[0]
-            (video_frame_start, video_frame_end), (audio_frame_start, audio_frame_end) = VideoAudioDataset.Transform.get_random_segment(n_frames_video, n_samples_audio, self.transform_args['random_segment_seconds'] if 'random_segment_seconds' in self.transform_args else 5)
+            (video_frame_start, video_frame_end), (audio_frame_start, audio_frame_end) = VideoAudioDataset.Transform.get_random_segment(
+                n_frames_video, n_samples_audio,
+                self.transform_args['random_segment_seconds'] if 'random_segment_seconds' in self.transform_args else 5
+            )
             cap.set(cv2.CAP_PROP_POS_FRAMES, video_frame_start)
 
         # Read frames and store them in a list
@@ -82,6 +90,8 @@ class VideoAudioDataset(Dataset):
             if not ret or (self.transform == VideoAudioDataset.Transform.RANDOM_SEGMENT and cap.get(cv2.CAP_PROP_POS_FRAMES) > video_frame_end):
                 break
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
+            if self.downsample_factor > 1:
+                frame = downsample_frame(frame, factor=self.downsample_factor)
             frame = torch.from_numpy(frame).permute(2, 0, 1)  # Convert to CHW format
             frames.append(frame)
 
@@ -117,3 +127,39 @@ class VideoAudioDataset(Dataset):
 
         del self.cache
         self.cache = {}
+
+
+def downsample_frame(frame, factor=2):
+    """Downsample image height and width
+    
+    Args:
+        frame (np ndarray): of shape (height, width, n_channels)
+        factor (int): factor to downsample by
+    Returns:
+        np ndarray: of shape (height // factor, width // factor, n_channels)
+    """
+
+    # first apply gaussian blur to every frame
+    frame = cv2.GaussianBlur(frame, (5, 5), 0)
+
+    # then downsample
+    frame = frame[::factor, ::factor, :]
+
+    return frame
+
+
+class ResamplingSampler(Sampler):
+    def __init__(self, data_source, batch_size, no_batches=None, replacement=True):
+        self.data_source = data_source
+        self.batch_size = batch_size
+        self.replacement = replacement
+        self.no_batches = no_batches if no_batches is not None else len(data_source) // batch_size
+
+    def __iter__(self):
+        n = len(self.data_source)
+        for _ in range(self.no_batches):
+            batch_indices = np.random.choice(n, self.batch_size, replace=self.replacement)
+            yield batch_indices
+
+    def __len__(self):
+        return self.no_batches

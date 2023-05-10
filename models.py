@@ -34,6 +34,11 @@ class VideoAudioMatchingModel(nn.Module):
         self.video_cnn = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         num_features = self.video_cnn.fc.in_features
         self.video_cnn.fc = nn.Identity()
+        # freeze all layers of resnet except last layer
+        for param in self.video_cnn.parameters():
+            param.requires_grad = False
+        for param in self.video_cnn.fc.parameters():
+            param.requires_grad = True
         self.video_gru = nn.GRU(input_size=num_features, hidden_size=512, num_layers=1, batch_first=True)
 
         # Audio sub-model (Transfer learning from torchaudio)
@@ -43,9 +48,18 @@ class VideoAudioMatchingModel(nn.Module):
         )
         self.audio_cnn = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         self.audio_cnn.fc = nn.Linear(num_features, 512)
+        for param in self.audio_cnn.parameters():
+            param.requires_grad = False
+        for param in self.audio_cnn.fc.parameters():
+            param.requires_grad = True
         
         # Combine sub-models
-        self.fc = nn.Linear(1024, 1)
+        self.fc = nn.Sequential(
+            nn.Linear(1024, 512),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(512, 1)
+        )
 
     def forward(self, video, audio):
         batch_size, seq_len, c, h, w = video.size()
@@ -56,6 +70,7 @@ class VideoAudioMatchingModel(nn.Module):
         video_output = hidden[-1] # 512
 
         spectrogram = self.audio_preprocess(audio)
+        spectrogram = spectrogram.unsqueeze(1) # add channel dimension
         spectrogram_3channel = spectrogram.repeat(1, 3, 1, 1)
         audio_features = self.audio_cnn(spectrogram_3channel) # 512
 
