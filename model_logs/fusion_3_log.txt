@@ -1,0 +1,97 @@
+05/10/2023 - 14:30
+model2 Training 3
+name: fusion_3
+notes:  fusion_3 uses backbone as a transfer baseline, meanining weights are NOT frozen
+        all the weights are updated
+Train Acc: 0.9218
+Best val Acc: 0.5208
+Test Acc: 0.489583
+----------------------------------------
+device = 'cuda'
+lr = 0.01   # !!!!
+
+RANDOM_SEGMENT_SECONDS = 2
+
+N_EPOCHS = 8
+TRAIN_DATASET_SUBSAMPLE_SIZE = 780
+VAL_DATASET_SUBSAMPLE_SIZE = 96
+TEST_DATASET_SUBSAMPLE_SIZE = 96
+BATCH_SIZE = 4
+
+starting_point = fusion_2
+
+Epoch 1/10
+----------
+100%
+195/195 [31:08<00:00, 9.19s/it]
+train Loss: 0.1081 Acc: 0.8577
+100%
+24/24 [04:10<00:00, 10.26s/it]
+val Loss: 0.3059 Acc: 0.5104
+
+Epoch 2/10
+----------
+100%
+195/195 [10:34<00:00, 3.21s/it]
+train Loss: 0.0870 Acc: 0.8962
+100%
+24/24 [00:46<00:00, 1.84s/it]
+val Loss: 0.3019 Acc: 0.5208
+
+Epoch 3/10
+----------
+100%
+195/195 [10:37<00:00, 3.43s/it]
+train Loss: 0.0696 Acc: 0.9218
+100%
+24/24 [00:47<00:00, 1.93s/it]
+val Loss: 0.3347 Acc: 0.4792
+
+Epoch 4/10
+----------
+100%
+195/195 [10:33<00:00, 3.15s/it]
+train Loss: 0.0855 Acc: 0.8897
+100%
+24/24 [00:47<00:00, 2.05s/it]
+val Loss: 0.3316 Acc: 0.4583
+
+Epoch 5/10
+----------
+100%
+195/195 [10:29<00:00, 3.30s/it]
+train Loss: 0.0679 Acc: 0.9090
+100%
+24/24 [00:47<00:00, 1.92s/it]
+val Loss: 0.7768 Acc: 0.5104
+
+Epoch 6/10
+----------
+100%
+195/195 [10:36<00:00, 3.21s/it]
+train Loss: 0.0679 Acc: 0.9051
+100%
+24/24 [00:48<00:00, 2.10s/it]
+val Loss: 0.7251 Acc: 0.5104
+
+Epoch 7/10
+----------
+100%
+195/195 [10:34<00:00, 3.32s/it]
+train Loss: 0.0667 Acc: 0.9103
+100%
+24/24 [00:47<00:00, 1.85s/it]
+val Loss: 1.0870 Acc: 0.4479
+
+Epoch 8/10
+----------
+100%
+195/195 [10:32<00:00, 3.20s/it]
+train Loss: 0.0905 Acc: 0.8641
+100%
+24/24 [00:48<00:00, 1.99s/it]
+val Loss: 0.3982 Acc: 0.5000
+
+!! KeyboardInterrupt
+________________________________________
+
