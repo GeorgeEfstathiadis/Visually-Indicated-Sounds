@@ -5,7 +5,7 @@ notes:  fusion_3 uses Resnet50 as backbone as a transfer baseline, meanining wei
         all the weights are updated
 Train Acc: 0.9231
 Best val Acc: 0.572917
-Test Acc: 
+Test Acc: 0.488 something
 ----------------------------------------
 device = 'cuda'
 lr = 0.01   # !!!!
