@@ -3,6 +3,8 @@ import torch
 import numpy as np
 import cv2
 from torch.utils.data import Dataset, Sampler
+from torchvision import transforms
+from matplotlib import pyplot as plt
 from scipy.io import wavfile
 
 from constants import VIDEO_FRAME_RATE, AUDIO_SAMPLE_RATE
@@ -54,6 +56,30 @@ class VATransform:
         frame = frame[::factor, ::factor, :]
 
         return frame
+    
+    def data_augment(frame, **transform_args):
+        """Uses torchvision.transform to randomly change brightness, flip, or rotate the image.
+        
+        Args:
+            frame (np ndarray): of shape (height, width, n_channels), mode='RGB'
+        Returns:
+            np ndarray: of shape (height, width, n_channels)
+        """
+
+        augment_args = {
+            'brightness_lower': transform_args.get('brightness_lower', 0.75),
+            'brightness_upper': transform_args.get('brightness_upper', 1.25),
+            'p_hflip': transform_args.get('p_hflip', 0.5),
+            'degrees_range': transform_args.get('degrees_range', (-10, 10))
+        }
+
+        frame = transforms.functional.to_pil_image(frame, mode='RGB')
+        frame = transforms.functional.adjust_brightness(frame, np.random.uniform(0.75, 1.25))
+        frame = transforms.functional.hflip(frame) if np.random.uniform() < 0.5 else frame
+        frame = transforms.functional.rotate(frame, np.random.uniform(-10, 10))
+
+        return frame
+
 
 
 class VideoAudioDataset(Dataset):
@@ -158,6 +184,8 @@ class VideoAudioDataset(Dataset):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
             if VATransform.IMG_DOWNSAMPLE in self.transform:
                 frame = VATransform.downsample_img(frame, factor=self.transform_args['img_downsample_factor'])
+            if VATransform.DATA_AUGMENT in self.transform:
+                frame = VATransform.data_augment(frame, **self.transform_args)
             frame = torch.from_numpy(frame).permute(2, 0, 1)  # Convert to CHW format
             frames.append(frame)
 
