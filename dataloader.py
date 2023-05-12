@@ -78,7 +78,7 @@ class VATransform:
         frame = transforms.functional.hflip(frame) if np.random.uniform() < 0.5 else frame
         frame = transforms.functional.rotate(frame, np.random.uniform(-10, 10))
 
-        return frame
+        return np.array(frame)
 
 
 
@@ -185,7 +185,7 @@ class VideoAudioDataset(Dataset):
             if VATransform.IMG_DOWNSAMPLE in self.transform:
                 frame = VATransform.downsample_img(frame, factor=self.transform_args['img_downsample_factor'])
             if VATransform.DATA_AUGMENT in self.transform:
-                frame = VATransform.data_augment(frame, **self.transform_args)
+                frame = VATransform.data_augment(frame, **self.transform_args) # shape h x w x c
             frame = torch.from_numpy(frame).permute(2, 0, 1)  # Convert to CHW format
             frames.append(frame)
 
