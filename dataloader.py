@@ -29,13 +29,14 @@ class VideoAudioDataset(Dataset):
 
     def __init__(
         self, dataset, device, filepath_prefix = '',
-        transform=Transform.NONE, downsample_factor=1,
+        transform=Transform.NONE, downsample_factor=1, downsample_frames=1,
         use_cache = False, **transform_args
     ):
         self.dataset = dataset
         self.device = device
         self.transform = transform
         self.downsample_factor = downsample_factor
+        self.downsample_frames = downsample_frames
         self.transform_args = transform_args
         self.filepath_prefix = filepath_prefix
         self.use_cache = use_cache
@@ -100,6 +101,7 @@ class VideoAudioDataset(Dataset):
 
         # Stack the list of frames into a single tensor
         video = torch.stack(frames).float() # (n_frames, height, width, n_channels)
+        video = video[::self.downsample_frames] # Downsample frame rate
         video = video / 255.0 # Normalize pixel values to [0, 1]
         
         if self.transform == VideoAudioDataset.Transform.RANDOM_SEGMENT:
