@@ -57,13 +57,13 @@ class VATransform:
 
         return frame
     
-    def data_augment(frame, **transform_args):
+    def data_augment(video, **transform_args):
         """Uses torchvision.transform to randomly change brightness, flip, or rotate the image.
         
         Args:
-            frame (np ndarray): of shape (height, width, n_channels), mode='RGB'
+            video (np ndarray): of shape (n_frames, height, width, n_channels), mode='RGB'
         Returns:
-            np ndarray: of shape (height, width, n_channels)
+            np ndarray: of shape (n_frames, height, width, n_channels)
         """
 
         augment_args = {
@@ -73,12 +73,34 @@ class VATransform:
             'degrees_range': transform_args.get('degrees_range', (-10, 10))
         }
 
-        frame = transforms.functional.to_pil_image(frame, mode='RGB')
-        frame = transforms.functional.adjust_brightness(frame, np.random.uniform(0.75, 1.25))
-        frame = transforms.functional.hflip(frame) if np.random.uniform() < 0.5 else frame
-        frame = transforms.functional.rotate(frame, np.random.uniform(-10, 10))
+        rng_brightness = np.random.uniform(augment_args['brightness_lower'], augment_args['brightness_upper'])
+        rng_hflip = np.random.uniform()
+        rng_rotate = np.random.uniform(augment_args['degrees_range'][0], augment_args['degrees_range'][1])
 
-        return np.array(frame)
+
+        frames = []
+
+        for frame in video:
+
+            # reshape from chw to hwc
+            frame = np.transpose(frame, (1, 2, 0)).cpu().numpy()
+            plt.imshow(frame)
+            plt.show()
+
+            # print("in: ", len(video), "x", frame.shape)
+
+            frame = transforms.functional.to_pil_image(frame, mode='RGB')
+            frame = transforms.functional.adjust_brightness(frame, rng_brightness)
+            frame = transforms.functional.hflip(frame) if rng_hflip < 0.5 else frame
+            frame = transforms.functional.rotate(frame, rng_rotate)
+
+            frame = transforms.functional.to_tensor(frame)
+            plt.imshow(frame.cpu().numpy().transpose(1, 2, 0))
+            plt.show()
+            frames.append(frame)
+
+        # print("out: ", len(frames), "x", frames[0].shape)
+        return frames
 
 
 
@@ -177,25 +199,29 @@ class VideoAudioDataset(Dataset):
             cap.set(cv2.CAP_PROP_POS_FRAMES, video_frame_start)
 
         # Read frames and store them in a list
+        f_pos = 0
         while True:
             ret, frame = cap.read()
+            f_pos += 1
             if not ret or (VATransform.RANDOM_SEGMENT in self.transform and cap.get(cv2.CAP_PROP_POS_FRAMES) > video_frame_end):
                 break
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
             if VATransform.IMG_DOWNSAMPLE in self.transform:
                 frame = VATransform.downsample_img(frame, factor=self.transform_args['img_downsample_factor'])
-            if VATransform.DATA_AUGMENT in self.transform:
-                frame = VATransform.data_augment(frame, **self.transform_args) # shape h x w x c
             frame = torch.from_numpy(frame).permute(2, 0, 1)  # Convert to CHW format
             frames.append(frame)
 
         # Release the VideoCapture object
         cap.release()
+        
+        if VATransform.FRAME_DOWNSAMPLE in self.transform:
+            frames = frames[::self.transform_args['frame_downsample_factor']]
+
+        if VATransform.DATA_AUGMENT in self.transform:
+            frames = VATransform.data_augment(frames, **self.transform_args) # shape n x h x w x c
 
         # Stack the list of frames into a single tensor
         video = torch.stack(frames).float() # (n_frames, height, width, n_channels)
-        if VATransform.FRAME_DOWNSAMPLE in self.transform:
-            video = video[::self.transform_args['frame_downsample_factor']]
         video = video / 255.0 # Normalize pixel values to [0, 1]
         
         if VATransform.RANDOM_SEGMENT in self.transform:
