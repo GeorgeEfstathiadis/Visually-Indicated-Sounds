@@ -84,8 +84,6 @@ class VATransform:
 
             # reshape from chw to hwc
             frame = np.transpose(frame, (1, 2, 0)).cpu().numpy()
-            plt.imshow(frame)
-            plt.show()
 
             # print("in: ", len(video), "x", frame.shape)
 
@@ -95,8 +93,6 @@ class VATransform:
             frame = transforms.functional.rotate(frame, rng_rotate)
 
             frame = transforms.functional.to_tensor(frame)
-            plt.imshow(frame.cpu().numpy().transpose(1, 2, 0))
-            plt.show()
             frames.append(frame)
 
         # print("out: ", len(frames), "x", frames[0].shape)
