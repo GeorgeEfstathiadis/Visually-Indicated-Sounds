@@ -2,7 +2,7 @@
 
 CV Project
 
-Current best test accuracy: 0.45833 (fusion_2)
+Current best test accuracy: 0.53125 (fusion_siamese_4)
 
 ## What needs to be done:
 
