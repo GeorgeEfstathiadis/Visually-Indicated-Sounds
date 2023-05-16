@@ -1,0 +1,7 @@
+05/13/2023 - 23:04
+Training complete in 76m 52s
+Best val Acc: 0.593750
+Model name: fusion50_3
+Started model: None
+Accuracy on 96 test samples: 0.4895833333333333
+Notes: Predicted all zeros...

@@ -1,0 +1,6 @@
+05/13/2023 - 23:42
+Training complete in 32m 7s
+Best val Acc: 0.656250
+Model name: fusion50_4
+Starter model: None
+Accuracy on 96 test samples: 0.53125
