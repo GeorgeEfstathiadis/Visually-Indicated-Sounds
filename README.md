@@ -23,6 +23,29 @@ Current best test accuracy: 0.45833 (fusion_2)
     * [ ] not enough memory to work with c\*h\*w channels, need to convolute spatially first
 * [ ] create new data outside the drumstick dataset to see how it generalizes
 
+### Report
+
+* [ ] Update Abstract (after finishing the report on limitations and results)
+* [x] Introduction (can combine with related work if we need the pages)
+* [x] Related Work
+* [x] Methods
+  * [x] Dataset
+  * [x] Model Architecture - non-explicit pre-trained models (remove resnet mention, keep it more generic -> will move this to results since we tried more different architectures), focus on fusion network strategy (Siamese network staff on results model augment)
+* [x] Results
+  * [x] Data Loading (write about video/audio loading speedup techniques, removing information for faster data loading in training etc.)
+  * [x] Overfitting (write on efforts to avoid overfitting and get good convergent results)
+    * [x] Data Augment (write about data augmentations used, different things tried and results, siamese network logic etc.)
+    * [x] Model Augment (write about model augmentations used, different things tried and results)
+    * [ ] Yassine fill the blanks of siamese network thoughts, and any other augmentations he tried missing
+* [ ] Discussion
+  * [x] Aims (write about aims of the project, what we wanted to achieve)
+  * [ ] Limitations (write about limitations of the dataset, of the model, of the training process)
+  * [ ] Future Work (write about future work, what could be done to improve the results, what could be done to improve the dataset, what could be done to improve the model, What steps would you have taken had you continued working on it?)
+* [x] Contributions (write about contributions of each member)
+  * [ ] Yassine fill the blank in contributions
+* [x] Fix graph of network architecture (Fusion to be more generic components)
+* [ ] Training loss; accuracies graphs? (maybe not since not that interesting; just shown overfitting;)
+
 ## Useful links:
 
 * https://github.com/emilyzfliu/vis-sounds/tree/main
