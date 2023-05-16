@@ -28,13 +28,13 @@ Current best test accuracy: 0.45833 (fusion_2)
 * [ ] Update Abstract (after finishing the report on limitations and results)
 * [x] Introduction (can combine with related work if we need the pages)
 * [x] Related Work
-* [ ] Methods
+* [x] Methods
   * [x] Dataset
-  * [ ] Model Architecture - Change to write about the Siamese network, non-explicit pre-trained models (remove resnet mention, keep it more generic -> will move this to results since we tried more different architectures), focus on fusion network strategy
+  * [x] Model Architecture - non-explicit pre-trained models (remove resnet mention, keep it more generic -> will move this to results since we tried more different architectures), focus on fusion network strategy (Siamese network staff on results model augment)
 * [ ] Results
   * [ ] Data Loading (write about video/audio loading speedup techniques, removing information for faster data loading in training etc.)
   * [ ] Overfitting (write on efforts to avoid overfitting and get good convergent results)
-    * [ ] Data Augment (write about data augmentations used, different things tried and results)
+    * [ ] Data Augment (write about data augmentations used, different things tried and results, siamese network logic etc.)
     * [ ] Model Augment (write about model augmentations used, different things tried and results)
 * [ ] Discussion
   * [x] Aims (write about aims of the project, what we wanted to achieve)
